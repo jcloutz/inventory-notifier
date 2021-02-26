@@ -6,6 +6,7 @@ type ProductNotification struct {
 	Site      string
 	SalePrice float64
 	MaxPrice  float64
+	ROI       float64
 }
 
 type Notifier interface {

@@ -1,46 +1,124 @@
 package scrapers
 
 import (
-	"errors"
-	"fmt"
-	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/gocolly/colly"
-
-	inventory_notifier "github.com/jcloutz/inventory-notifier"
+	log "github.com/sirupsen/logrus"
 )
 
-type Scraper interface {
-	Scrape(collector *colly.Collector)
-}
+var containerMutex = sync.RWMutex{}
+var scraperContainer = map[string]ScraperConfig{
+	"newegg": {
+		Selector: ".items-view div.item-container",
+		Handler: func(e *colly.HTMLElement) (*ScraperResult, error) {
+			title := e.ChildText(".item-title")
+			productUrl := e.ChildAttr(".item-title", "href")
+			unitPrice := e.ChildAttr("input[name='ItemUnitPrice']", "value")
+			buttonType := e.ChildAttr(".same-td-elastic button", "title")
+			inStock := false
 
-func MatchProductAndNotify(title string, url string, site string, salePrice float64, matchers *inventory_notifier.MatcherContainer, notifiers *inventory_notifier.Notifiers) {
-	cfg, err := matchers.Find(title)
-	if err != nil {
-		fmt.Printf("no matching product config found for item %s\n", title)
-		return
-	}
+			if buttonType == "ADD TO CART" {
+				inStock = true
+			}
 
-	notifiers.Notify(&inventory_notifier.ProductNotification{
-		Name:      cfg.Name,
-		Url:       url,
-		Site:      site,
-		SalePrice: salePrice,
-		MaxPrice:  cfg.MaxPrice,
-	})
-}
+			price, err := ConvertPrice(unitPrice)
+			if err != nil {
+				return &ScraperResult{}, err
+			}
 
-func ConvertPrice(priceString string) (float64, error) {
-	price := strings.ToLower(strings.TrimSpace(strings.TrimLeft(priceString, "$")))
-	if price == "" {
-		return 0, errors.New("invalid price")
-	}
+			return &ScraperResult{
+				Title:   title,
+				Url:     productUrl,
+				Price:   price,
+				InStock: inStock,
+			}, nil
+		},
+	},
 
-	curPrice, err := strconv.ParseFloat(price, 64)
-	if err != nil {
-		return 0, errors.New("price not present")
-	}
+	"gamestop": {
+		Selector: ".row.infinitescroll-results-grid .product-grid-tile-wrapper",
+		Handler: func(e *colly.HTMLElement) (*ScraperResult, error) {
+			title := e.ChildText(".pd-name")
+			productUrl := "https://gamestop.com" + e.ChildAttr(".link-name", "href")
+			unitPrice := e.ChildText(".actual-price")
+			buttonText := e.ChildText(".add-to-cart")
+			inStock := false
 
-	return curPrice, nil
+			if strings.TrimSpace(strings.ToLower(buttonText)) == "add to cart" {
+				inStock = true
+			}
+
+			price, err := ConvertPrice(unitPrice)
+			if err != nil {
+				log.Errorf("price: %s, product: %s", unitPrice, title)
+				return &ScraperResult{}, err
+			}
+
+			return &ScraperResult{
+				Title:   title,
+				Url:     productUrl,
+				Price:   price,
+				InStock: inStock,
+			}, nil
+		},
+	},
+
+	"bestbuy": {
+		Selector: ".sku-item-list .sku-item",
+		Handler: func(e *colly.HTMLElement) (result *ScraperResult, err error) {
+			title := e.ChildText(".sku-header a")
+			productUrl := "https://bestbuy.com" + e.ChildAttr(".sku-header a", "href")
+			unitPrice := e.ChildText(".priceView-hero-price span[aria-hidden=true]")
+			buttonText := e.ChildText(".sku-item-list .sku-item .fulfillment-add-to-cart-button button")
+			inStock := false
+
+			if strings.TrimSpace(strings.ToLower(buttonText)) == "add to cart" {
+				inStock = true
+			}
+
+			price, err := ConvertPrice(unitPrice)
+			if err != nil {
+				log.Errorf("price: %s, product: %s", unitPrice, title)
+				return &ScraperResult{}, err
+			}
+
+			return &ScraperResult{
+				Title:   title,
+				Url:     productUrl,
+				Price:   price,
+				InStock: inStock,
+			}, nil
+		},
+	},
+
+	"officedepot": {
+		Selector: ".sku_item",
+		Handler: func(e *colly.HTMLElement) (result *ScraperResult, err error) {
+			title := e.ChildText(".desc_text a")
+			productUrl := "https://officedepot.com" + e.ChildAttr(".desc_text a", "href")
+			unitPrice := e.ChildText(".price_column.right")
+
+			btnDisabled := e.ChildAttr("li.cart input", "disabled")
+			inStock := false
+
+			if strings.TrimSpace(strings.ToLower(btnDisabled)) != "disabled" {
+				inStock = true
+			}
+
+			price, err := ConvertPrice(unitPrice)
+			if err != nil {
+				log.Errorf("price: %s, product: %s", unitPrice, title)
+				return &ScraperResult{}, err
+			}
+
+			return &ScraperResult{
+				Title:   title,
+				Url:     productUrl,
+				Price:   price,
+				InStock: inStock,
+			}, nil
+		},
+	},
 }

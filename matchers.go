@@ -10,6 +10,7 @@ type ProductMatcher struct {
 	pattern  *regexp.Regexp
 	name     string
 	maxPrice float64
+	earns    float64
 }
 
 type MatcherContainer struct {
@@ -29,6 +30,7 @@ func (m *MatcherContainer) Add(productConfig *ProductConfig) {
 		pattern:  regexp.MustCompile("(?i)" + productConfig.Name),
 		name:     productConfig.Name,
 		maxPrice: productConfig.MaxPrice,
+		earns:    productConfig.Earns,
 	})
 }
 
@@ -41,6 +43,7 @@ func (m *MatcherContainer) Find(name string) (*ProductConfig, error) {
 			return &ProductConfig{
 				Name:     matcher.name,
 				MaxPrice: matcher.maxPrice,
+				Earns:    matcher.earns,
 			}, nil
 		}
 	}

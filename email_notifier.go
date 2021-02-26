@@ -20,7 +20,12 @@ func (em *EmailNotifier) Notify(product *ProductNotification) {
 	m.SetHeader("From", em.Username)
 	m.SetHeader("To", em.Recipients...)
 	m.SetHeader("Subject", fmt.Sprintf("%s In Stock", product.Name))
-	m.SetBody("text/html", fmt.Sprintf("<b>%s in stock:</b><br > <a href='%s'>%s</a>", product.Name, product.Url, product.Url))
+	m.SetBody("text/html", fmt.Sprintf(`
+		<b>%s in stock:</b><br >
+		<b>Price:</br> $%.2f<br />
+		<b>ROI</b> %.1f days<br />
+		<a href="%s">%s</a>`,
+		product.Name, product.SalePrice, product.ROI, product.Url, product.Url))
 
 	d := gomail.NewDialer(em.Server, em.Port, em.Username, em.Password)
 
@@ -29,6 +34,7 @@ func (em *EmailNotifier) Notify(product *ProductNotification) {
 		"url":        product.Url,
 		"price":      product.SalePrice,
 		"maxPrice":   product.MaxPrice,
+		"roi":        product.ROI,
 		"recipients": em.Recipients,
 	}).Info("Email notifying recipients")
 

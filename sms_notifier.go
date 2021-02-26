@@ -30,7 +30,7 @@ func (sms *SmsNotifier) sendNotification(product *ProductNotification, recipient
 	msgData := url.Values{}
 	msgData.Set("To", recipient)
 	msgData.Set("From", sms.Sender)
-	msgData.Set("Body", fmt.Sprintf("%s Available: %s", product.Name, product.Url))
+	msgData.Set("Body", fmt.Sprintf("%s (%.1f d): %s", product.Name, product.ROI, product.Url))
 	msgDataReader := *strings.NewReader(msgData.Encode())
 
 	client := &http.Client{}
@@ -57,6 +57,7 @@ func (sms *SmsNotifier) sendNotification(product *ProductNotification, recipient
 			"url":       product.Url,
 			"price":     product.SalePrice,
 			"maxPrice":  product.MaxPrice,
+			"roi":       product.ROI,
 			"recipient": recipient,
 		}).Info("SMS notifying recipient")
 	} else {
