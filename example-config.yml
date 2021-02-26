@@ -1,0 +1,75 @@
+---
+interval: 30
+notifiers:
+#  discord:
+#    callback: https://discord.com/api/webhooks/...
+#    recipients:
+#      - 178129140543782912
+#  email:
+#    sender: john@anon.io
+#    recipients:
+#      - john@anon.io
+#    server: relay-server.com
+#    port: 587
+#    password: password
+#  sms:
+#    api_endpoint: https://api.twilio.com/2010-04-01
+#    account_id: 123
+#    auth_token: token
+#    sender: +11231234
+#    recipients:
+#      - +11231234
+matchers:
+  - name: RTX 3060 Ti
+    max_price: 730
+    earns: 7.00
+  - name: RTX 3070
+    max_price: 750
+    earns: 7.00
+  - name: RTX 3080
+    max_price: 750
+    earns: 11.00
+  - name: RTX 3090
+    max_price: 1162
+    earns: 13.00
+  - name: RX 6800 xt
+    max_price: 588
+    earns: 7.13
+  - name: RX 6800
+    max_price: 570
+    earns: 7.00
+  - name: RX 6900
+    max_price: 621
+    earns: 7.00
+sites:
+  - name: newegg
+    interval: 30
+    domain: https://www.newegg.com
+    pages:
+      - https://secure.newegg.com/wishlist/pd/34540334
+
+  - name: officedepot
+    domain: https://www.officedepot.com
+    interval: 30
+    pages:
+      - https://www.officedepot.com/catalog/search.do?Ntt=rtx+3060+ti
+      - https://www.officedepot.com/catalog/search.do?Ntt=rtx+3070
+      - https://www.officedepot.com/catalog/search.do?Ntt=rtx+3080
+      - https://www.officedepot.com/catalog/search.do?Ntt=rtx+3090
+
+  - name: bestbuy
+    domain: https://www.bestbuy.com
+    interval: 30
+    pages:
+      - https://www.bestbuy.com/site/searchpage.jsp?st=rtx+3060+ti
+      - https://www.bestbuy.com/site/searchpage.jsp?st=rtx+3070
+      - https://www.bestbuy.com/site/searchpage.jsp?st=rtx+3080
+      - https://www.bestbuy.com/site/searchpage.jsp?st=rtx+3090
+      - https://www.bestbuy.com/site/searchpage.jsp?st=rx+6800
+      - https://www.bestbuy.com/site/searchpage.jsp?st=rx+6900-xt
+
+  - name: gamestop
+    domain: https://www.gamestop.com
+    interval: 30
+    pages:
+      - https://www.gamestop.com/video-games/pc-gaming/components/graphics-cards
