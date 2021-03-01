@@ -67,8 +67,11 @@ func (ns ScraperRunner) RunQueue(collector *colly.Collector) {
 
 	wg := sync.WaitGroup{}
 
+	productsChecked := 0
+	productsInStock := 0
+
 	collector.OnRequest(func(r *colly.Request) {
-		log.Infof("Requesting: %s\n", r.URL)
+		log.Infof("[%s] Requesting: %s\n", ns.Config.Name, r.URL)
 
 		r.Headers.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
 		r.Headers.Set("Accept-Encoding", "gzip, deflate, br")
@@ -77,21 +80,27 @@ func (ns ScraperRunner) RunQueue(collector *colly.Collector) {
 	})
 
 	collector.OnResponse(func(response *colly.Response) {
-		log.Infof("Received: %s", response.Request.URL.String())
+		//log.Infof("[%s] Received: %s", ns.Config.Name, response.Request.URL.String())
 		//log.Info(string(response.Body))
 	})
 
 	collector.OnError(func(response *colly.Response, err error) {
 		log.Error(err)
 	})
+	collector.OnScraped(func(response *colly.Response) {
+		log.Infof("[%s] %d products, %d in stock, url: %s", ns.Config.Name, productsChecked, productsInStock, response.Request.URL.String())
+
+	})
 
 	collector.OnHTML(scraper.Selector, func(e *colly.HTMLElement) {
+		productsChecked++
 		result, err := scraper.Handler(e)
 		if err != nil {
 			log.Error(err)
 		}
 
 		if result.InStock {
+			productsInStock++
 			go func() {
 				wg.Add(1)
 				MatchProductAndNotify(result.Title, result.Url, ns.Config.Name, result.Price, ns.Matchers, ns.Notifier)

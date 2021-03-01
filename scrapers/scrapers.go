@@ -121,4 +121,58 @@ var scraperContainer = map[string]ScraperConfig{
 			}, nil
 		},
 	},
+	"staples": {
+		Selector: ".standard-type__tile_wrapper",
+		Handler: func(e *colly.HTMLElement) (result *ScraperResult, err error) {
+			title := e.ChildText(".standard-type__product_title")
+			productUrl := "https://www.staples.com" + e.ChildAttr(".standard-type__product_title", "href")
+			unitPrice := e.ChildText(".standard-type__price")
+			btnText := e.ChildText(".standard-type__product_button")
+			inStock := false
+
+			if strings.TrimSpace(strings.ToLower(btnText)) == "add to cart" {
+				inStock = true
+			}
+
+			price, err := ConvertPrice(unitPrice)
+			if err != nil {
+				log.Errorf("price: %s, product: %s", unitPrice, title)
+				return &ScraperResult{}, err
+			}
+
+			return &ScraperResult{
+				Title:   title,
+				Url:     productUrl,
+				Price:   price,
+				InStock: inStock,
+			}, nil
+		},
+	},
+	"adorama": {
+		Selector: ".item",
+		Handler: func(e *colly.HTMLElement) (result *ScraperResult, err error) {
+			title := e.ChildText(".item-details a")
+			productUrl := e.ChildAttr(".item-details a", "href")
+			unitPrice := e.ChildText(".your-price")
+			btnText := e.ChildText(".add-to-cart")
+			inStock := false
+
+			if strings.TrimSpace(strings.ToLower(btnText)) == "add to cart" {
+				inStock = true
+			}
+
+			price, err := ConvertPrice(unitPrice)
+			if err != nil {
+				log.Errorf("price: %s, product: %s", unitPrice, title)
+				return &ScraperResult{}, err
+			}
+
+			return &ScraperResult{
+				Title:   title,
+				Url:     productUrl,
+				Price:   price,
+				InStock: inStock,
+			}, nil
+		},
+	},
 }

@@ -73,3 +73,12 @@ sites:
     interval: 30
     pages:
       - https://www.gamestop.com/video-games/pc-gaming/components/graphics-cards
+
+  - name: staples
+    domain: https://www.staples.com
+    interval: 30
+    pages:
+      - https://www.staples.com/rtx+3060+ti/directory_rtx%25203060%2520ti
+      - https://www.staples.com/rtx+3070/directory_rtx%25203070
+      - https://www.staples.com/rtx+3080/directory_rtx%25203080
+      - https://www.staples.com/rtx+3090/directory_rtx%25203090
